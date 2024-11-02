@@ -1,0 +1,260 @@
+---
+title: "PEC1"
+author: "Ariel Ernesto Cariaga Martínez"
+format: pdf
+editor: visual
+toc: true
+toc-title: "Contenido"
+lang: es
+---
+
+## Resumen ejecutivo
+
+Este estudio examina datos de metabolómica, obtenidos en pacientes sometidos a cirugía bariátrica, mediante análisis exploratorio y reducción de dimensionalidad. Utilizando un contenedor `SummarizedExperiment`, se estructuraron los datos metabolómicos, antropométricos y clínicos, aplicándose imputación kNN para gestionar valores faltantes. Las diversas visualizaciones sugieren ciertos patrones entre los datos provenientes de las muestras analizadas, incluyendo los resultados de un Análisis de Componentes Principales (PCA), un clúster jerárquico y un mapa de distancias, sugiriendo una posible relación con la intervención quirúrgica. Sin embargo, los primeros componentes principales explican solo una pequeña fracción de la varianza total, indicando alta complejidad en los datos. El estudio presenta limitaciones pero este enfoque inicial sienta las bases para estudios más complejos que integren técnicas avanzadas multidimensionales y de aprendizaje automático aplicados a esta *ómica*.
+
+## Objetivos del estudio.
+
+Esta PEC completa la introducción a las ómicas mediante un ejercicio de repaso y ampliación que nos permitirá trabajar con algunas de las herramientas de este curso, en concreto, Bioconductor y la exploración multivariante de datos.Para llevar a cabo óptimamente esta primera parte, habrá que estar familiarizado con:
+
+-   las tecnologías ómicas,
+
+-   las herramientas para trabajar con ellas,
+
+    -   [Bioconductor](https://www.bioconductor.org) y
+
+    -   *github*,
+
+-   los contenedores de datos ómicos, como los `expressionSets`,
+
+-   y con las herramientas de exploración de datos, introducidas en la tercera actividad.
+
+En concreto, los objetivos buscados son:
+
+1.  Seleccionar un dataset de metabolómica a obtener de este repositorio de github: https://github.com/nutrimetabolomics/metaboData/
+
+    -   O usar algún dataset del repositorio de [metabolomicsWorkbench](https://www.metabolomicsworkbench.org)
+
+2.  Una vez descargados los datos, crear un contenedor del tipo `SummarizedExperiment` que contenga los datos y los metadatos (información acerca del dataset, las filas y las columnas).
+
+3.  Llevar a cabo una exploración del dataset que proporcione una visión general del mismo.
+
+4.  Elaborar un informe que describa el proceso realizado, incluyendo la descarga de los datos, la creación del contenedor, la exploración de los datos y la reposición de los datos en *github*. El nombre del repositorio tiene que ser el siguiente: Apellido1-Apellido2-Nombre-PEC1.
+
+5.  Crear un repositorio de *github* que contenga o
+
+    -   El informe.
+
+    -   El objeto contenedor con los datos y los metadatos en formato binario (.Rda).
+
+    -   El código R para la exploración de los datos
+
+    -   Los datos en formato texto.
+
+    -   Los metadatos acerca del dataset en un archivo Rmarkdown.
+
+    La dirección (url) del repositorio deberá estar incluida en la última sección del informe de forma clara.
+
+## Materiales y métodos.
+
+### Origen y naturaleza de los datos.
+
+Los diversos datasets para la generación del objeto `SummarizedExperiment` fueron tomados del trabajo publicado por [Palau-Rodriguez et al](https://github.com/nutrimetabolomics/metaboData/blob/main/Datasets/2018-MetabotypingPaper/AAInformation_S006.html). Estos datos contienen tanto datos en crudo, como metadatos. Más concretamente los datos fueron obtenidos de 39 pacientes que fueron sometidos a cirugías bariátricas (Hospital Virgen de la Victoria, Málaga) y en cuyos sueros se analizaron diversos metabolitos, con adquisiciones de datos a tiempos diferentes (1, 3 y 6 meses) tras la cirugía. Los datos recogidos incluyeron variables cualitativas y sociodemográficas (tales como sexo y edad y el tipo de cirugía bariátrica realizada). Por otra parte, también se incluyen valores antropométricos cuantitativos tales como peso, índice de masa corporal (BMI), perímetro de cintura, ratio cintura-cadera y una estratificación (grupo) según el grado del síndrome metabólico desarrollado por cada paciente. Otros datos clínicos cuantitativos también incluidos son los niveles de hemoglobina glicosilada, glucosa sérica e insulina, tensión arterial y datos de los perfiles lipídicos (colesterol total, colesterol VLDL, LDL y HDL). La toma de los datos cuantitativos para el análisis metabolómico se realizó por cromatografía líquida unida a espectrometría de masas.
+
+### Herramientas utilizadas.
+
+En el presente estudio, los datos fueron procesados utilizando el software R (versión 4.4.1) y Bioconductor (version 3.20) (en particular con el paquete `summaryzedExperiments`). Siguiendo la decisión inicial del trabajo publicado, los valores faltantes fueron imputados con una aproximación de vecinos más cercanos (kNN) utilizando K=10. Para el caso del análisis exploratorio de los datos se usaron paquetes base de R, `tidyverse` (para la parte de manipulación y gráficos), `factoExtra` (para ciertas visualizaciones) y `DMwR2` (para las imputaciones de datos faltantes), entre otros.
+
+## Resultados
+
+### Generación del objeto `summaryzedExperiment`.
+
+El archivo global de datos (DataValues_S013.csv) contenía 5 filas con metadatos de los pacientes. En concreto 5 filas que consistían en el ID del paciente, el sexo, la edad, el tipo de cirugía y la estratificación por grupo. Por lo tanto, estas 5 filas pasaron a formar parte del parámetro `colData` .
+
+Por otra parte, el archivo (DataInfo_S013.csv) contenía información sobre los distintos metabolitos medidos. Tras eliminar las filas que contenían metadatos (y que forman parte del parámetro `colData`) el número de dimensiones y la disposición de los elementos fue la correcta para la generación del objeto. En consecuencia, se generó el objeto `summaryzedExperiment` con:
+
+-   DataValues (sin las 5 filas comentadas y transpuesto) fue parte del parámetro `assays`.
+
+-   Las 5 filas indicadas fueron el parámetro `colData` .
+
+-   DataInfo_S013 fue parte del parámetro `rowData` .
+
+Por lo tanto, la instrucción para la creación del objeto de interés para este estudio fue la siguiente:
+
+`se <- SummarizedExperiment(assays = list(counts = as.matrix(assay_1)), rowData = rowdata, colData = coldata)`
+
+```{r, echo=F, warning=F, comment='', message=F, results='hide'}
+#1) Cargar las bibliotecas necesarias
+library(BiocManager)
+library(SummarizedExperiment)
+library(tidyverse)
+library(factoextra)
+library(DMwR2)
+library(naniar)
+library(knitr)
+library(psych)
+library(kableExtra)
+
+#Cargamos el objeto summaryzedExperiment creado en el scrip procedimiento_PEC1.R
+load("se.Rda")
+
+#ANÁLISIS EXPLORATORIO DE LOS DATOS
+#Extraemos la matriz de expresión
+data_matrix <- assay(se, "counts")  
+
+```
+
+### Análisis exploratorio.
+
+#### Análisis descriptivo.
+
+Se realizó un análisis descriptivo cuyos principales resultados resumidos fueron los siguientes:
+
+```{r, echo=F, warning=F, message=FALSE, comment=''}
+#ESTADÍSTICA DESCRIPTIVA
+summary_stats <- describe(data_matrix)
+summary_reduced <- summary_stats[, c("vars", "n", "mean", "sd", "min", "max")]
+kable(summary_reduced) %>%
+  kable_styling(full_width = FALSE, position = "center", font_size = 10) %>%
+  scroll_box(width = "50%", height = "400px") 
+#Evitamos summary(data_matrix) por la incapcidad de visualizar adecuadamente los datos
+```
+
+#### Análisis gráfico básico.
+
+Se llevó a cabo un primer análisis gráfico de las distintas variables para ver sus características principales.
+
+```{r, echo=F, warning=F, message=FALSE, comment='', results= 'hide', fig.width=8, fig.height=6}
+#ANÁLISIS GRÁFICO
+#Para generar un estudio gráfico de las variables de interés: necesitamos convertir la matriz a numérica
+data_matrix_clean <- apply(data_matrix, 2, function(x) as.numeric(trimws(x)))
+
+#Esta función está tomada de los ejemplos del Curso:
+f <- function(x) {
+  x <- na.omit(x)
+  if (is.numeric(x)) {
+    hist(x, breaks = 10, main = "Histograma de datos numéricos")
+  } else {
+    barplot(table(x), main = "Gráfico de barras de datos categóricos")
+  }
+}
+
+# Configurar par() para mostrar múltiples gráficos
+par(mfrow = c(3, 4))
+
+# Aplicar la función a cada columna
+apply(data_matrix_clean, 2, f)
+dev.off()
+
+```
+
+En la búsqueda de una mejor comprensión de las características de los datos, se realizaron visualizaciones de tipo *boxplot* que, además permitieron una mejor observación de posibles valores *outliers*.
+
+```{r, echo=F, warning=F, comment='', message=F, fig.width=6, fig.height=4, fig.align='center'}
+#BOXPLOTS Y DETECCIÓN DE OUTLIERS
+boxplot(data_matrix_clean, outline = TRUE, main = "Distribución de las variables", las = 2)
+```
+
+También se realizó un análisis exploratorio de las correlaciones.
+
+```{r, echo=F, warning=F, comment='', message=F, fig.width=6, fig.height=4, fig.align='center'}
+
+#ALGUNAS CORRELACIONES
+#Matriz de correlación y visualización
+par(cex.main = 0.8)
+corr_matrix <- cor(data_matrix_clean, use = "complete.obs")
+heatmap(corr_matrix, 
+        main = "Mapa de calor de las correlaciones")
+par(cex.main = 1)
+
+```
+
+#### Preprocesado de los datos.
+
+Un posible problema de cara a los siguientes pasos fue que la matriz de datos presentó datos faltantes, tal como se puede observar en el siguiente gráfico:
+
+```{r, echo=F, warning=F, comment='', message=F, fig.width=4, fig.height=4, fig.align='center'}
+################################################################################
+
+#PREPROCESADO DE LOS DATOS: MANEJO DE NAs
+#Convertir a dataframe para ver la distribución de NAs y posterior imputación
+data_matrix_clean <- as.data.frame(data_matrix_clean)
+gg_miss_var(data_matrix_clean, show_pct = TRUE)
+
+```
+
+Por lo tanto, se realizó la imputación indicada previamente y, en consecuencia, el patrón de valores faltantes se eliminó.
+
+```{r, echo=F, warning=F, comment='', message=F, fig.width=4, fig.height=4, fig.align='center'}
+#Aplicar la imputación kNN siguiendo lo que indican en el paper original
+data_matrix_clean <- knnImputation(data_matrix_clean, k = 10)
+gg_miss_var(data_matrix_clean, show_pct = TRUE)
+
+```
+
+#### Reducción de la dimensionalidad (PCA).
+
+Para continuar con la comprensión del conjunto de datos se optó por una reducción de la dimensionalidad como un primer paso exploratorio.
+
+```{r, echo=F, warning=F, comment='', message=F, fig.width=6, fig.height=4, fig.align='center'}
+################################################################################
+
+#REDUCCIÓN DE LA DIMENSIONALIDAD: PCA
+
+#Realizar PCA centrando y escalando los datos
+pca_result <- prcomp(t(data_matrix_clean), center = TRUE, scale. = TRUE)
+
+# Resumen de los resultados del PCA
+summary(pca_result)
+plot(pca_result, main = "Varianza explicada por cada componente del PCA")
+```
+
+De donde vemos que los 2 primeros componentes explican alrededor del 30% de la varianza total. Viendo las *cargas* del primer componente vemos que corresponden valores adquiridos durante tiempos tardíos en el desarrollo del experimento y parecen incluir a ciertos glicerofosfolípidos, esfingolípidos y a los niveles del aminoácido Alanina. En principio, la vista gráfica podría ayudar a una mejor comprensión pero en este caso la gran cantidad de variables, afectó esta visualización.
+
+```{r, echo=F, warning=F, comment='', message=F, fig.width=8, fig.height=6, fig.align='center'}
+#Graficar el biplot del PCA
+biplot(pca_result, main = "PCA Biplot", cex=0.5)
+
+#Extraer los puntajes de los componentes principales
+pca_df <- as.data.frame(pca_result$x)
+pca_df$Sample <- rownames(pca_df)
+
+#Graficar PC1 vs PC2
+ggplot(pca_df, aes(x = PC1, y = PC2, label = Sample)) +
+  geom_point() +
+  geom_text(nudge_y = 0.2) +
+  labs(title = "PCA", x = "PC1", y = "PC2") +
+  theme_minimal()
+```
+
+#### Otras opciones de visualización.
+
+Se optó por otras formas de visualización para facilitar el acercamiento al conjunto de datos tal como un *clúster jerárquico* en donde podemos ver ciertas agrupaciones entre las muestras.
+
+```{r, echo=F, warning=F, comment='', message=F, fig.width=8, fig.height=6, fig.align='center'}
+#CLUSTER JERÁRQUICO
+dist_matrix <- dist(t(data_matrix), method = "euclidean")
+hc <- hclust(dist_matrix, method = "ward.D2")
+plot(hc, main = "Dendrograma de clustering jerárquico")
+```
+
+También se realizó un *heatmap de distancias* donde los colores que más tienden al rojo indican una cercanía mayor entre las muestras (siendo el color rojo la máxima cercanía y sería la de una muestra consigo misma y que se representa en la diagonal).
+
+```{r, echo=F, warning=F, comment='', message=F, fig.width=8, fig.height=6, fig.align='center'}
+#HEATMAP DE DISTANCIAS
+manDist <- dist(t(data_matrix_clean), method = "manhattan")
+
+#Convertir la matriz de distancias a una matriz completa
+manDist_matrix <- as.matrix(manDist)
+
+#Generar el heatmap
+heatmap(manDist_matrix, col = heat.colors(16), scale = "none")
+
+```
+
+## Discusión, limitaciones y conclusiones del estudio.
+
+En este estudio, se ha trabajado con datos de metabolómica obtenidos de pacientes sometidos a cirugías bariátricas, lo que nos permite explorar cómo cambian ciertos metabolitos en función del tiempo y de las características individuales de los pacientes. La estructura de los datos fue organizada en un objeto `SummarizedExperiment`, lo cual facilitó la gestión tanto de los valores de los metabolitos como de los metadatos asociados, permitiendo realizar un análisis de los datos más eficiente. El análisis descriptivo y las visualizaciones iniciales proporcionaron información sobre la distribución de los valores de los metabolitos, destacando su variabilidad y sugiriendo la presencia de valores extremos en algunos. La imputación de valores faltantes mediante kNN contribuyó a la integridad de los datos, aunque esta técnica puede introducir cierto sesgo, especialmente en las variables con alta cantidad de datos faltantes. Posteriormente, la reducción de dimensionalidad mediante PCA y el uso de otras visualizaciones brinda una vía inicial de análisis e interpretación. A pesar de lo anterio, el estudio presenta algunas limitaciones importantes: Baja capacidad explicativa del PCA: los primeros componentes principales explican una fracción limitada de la varianza total, lo que indica que los datos tienen una alta dimensionalidad y complejidad, y que es probable que existan relaciones no capturadas por el análisis lineal de PCA. Por otra parte, se requeriría un análisis más detallado para poder comprender y explicar con mayor detalle los hallazgos ya que en este estudio solo nos hemos detenido en un análisis exploratorio menor. En conclusión, la creación del contenedor SummarizedExperiment facilitó la estructuración de los datos y permitió llevar a cabo un análisis exploratorio con visualizaciones descriptivas y la búsqueda de patrones con ciertas visualizaciones. Sin embargo, debido a las limitaciones mencionadas, los resultados deben interpretarse con cautela. Probablmente, estudios más profundos que integren modelos no lineales y técnicas de aprendizaje automático, podrían mejorar la interpretación y predicción en el ámbito de la metabolómica y su relación con intervenciones médicas como la cirugía bariátrica.
+
+## Repositorio Github.
+
+https://github.com/cariagamartinez/Cariaga-Martinez-Ariel-PEC1

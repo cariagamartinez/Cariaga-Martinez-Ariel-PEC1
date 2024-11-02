@@ -1,7 +1,9 @@
 .Rproj.user
 .Rhistory
+.Rprofile
 .RData
 .Ruserdata
 renv
 renv.lock
 omics.Rproj
+.DS_Store
